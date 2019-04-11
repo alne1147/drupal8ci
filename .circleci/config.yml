@@ -1,42 +1,26 @@
-# Clojure CircleCI 2.0 configuration file
+# PHP CircleCI 2.0 configuration file
 #
-# Check https://circleci.com/docs/2.0/language-clojure/ for more details
+# Check https://circleci.com/docs/2.0/language-php/ for more details
 #
 version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      - image: circleci/clojure:lein-2.7.1
+      - image: juampynr/drupal8ci:latest
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    working_directory: ~/repo
-
-    environment:
-      LEIN_ROOT: "true"
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
+    working_directory: /var/www/html
 
     steps:
       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "project.clj" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+      - run:
+          name: Build Drupal skeleton with Composer Drupal Project
+          command: |
+            composer create-project drupal-composer/drupal-project:8.x-dev drupal --stability dev --no-interaction
 
-      - run: lein deps
-
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "project.clj" }}
-
-      # run tests!
-      - run: lein test
+      - run:
+          name: Run setup script
+          command: |
+            cp setup-circleci.sh drupal
+            cd drupal
+            ./setup-circleci.sh
